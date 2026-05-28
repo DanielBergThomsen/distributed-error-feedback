@@ -1,0 +1,9 @@
+numpy==2.2.4
+cvxpy==1.7.5
+tqdm==4.67.1
+pepit==0.3.2
+matplotlib==3.10.0
+mosek==11.0.13
+dask==2025.3.0
+pandas==2.2.3
+sdpa-multiprecision==0.2.2
