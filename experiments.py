@@ -23,8 +23,11 @@ from theory_helpers import optimal_step_size
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
-LABEL_SIZE = 20
+LABEL_SIZE = 22
+TITLE_SIZE = LABEL_SIZE
 TICK_SIZE = 20
+LEGEND_SIZE = 20
+ANNOTATION_SIZE = 20
 L_FIXED = 1.0
 KAPPAS = [5, 10, 100]
 GRID_RESOLUTION = 100  # Coarser grid for faster computation
@@ -33,6 +36,14 @@ TOL = 1e-4  # Bisection tolerance
 ROOT_IMAG_TOL = 1e-5  # Treat tiny imaginary parts as numerical noise
 
 Path("figures").mkdir(exist_ok=True)
+
+
+def experiment_textbox(text, override_kwargs=None):
+    """Return the standard textbox style using the experiment font sizes."""
+    kwargs = {'fontsize': ANNOTATION_SIZE}
+    if override_kwargs is not None:
+        kwargs.update(override_kwargs)
+    return standard_textbox(text, kwargs)
 
 
 # ------------------------------------------------------------------------------
@@ -221,13 +232,13 @@ def generate_polynomial_bifurcation_plot():
         ax.grid(True, linestyle=':', alpha=0.5)
 
         kappa2 = L2 / mu2
-        ax.text(**standard_textbox(f'$\\kappa_2 = {kappa2:g}$',
-                                   {'x': 0.95, 'y': 0.05, 'ha': 'right', 'va': 'bottom'}),
+        ax.text(**experiment_textbox(f'$\\kappa_2 = {kappa2:g}$',
+                                     {'x': 0.95, 'y': 0.05, 'ha': 'right', 'va': 'bottom'}),
                transform=ax.transAxes)
 
     handles, labels = axes[-1].get_legend_handles_labels()
     fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 1.08),
-               ncol=4, fontsize=18, frameon=False)
+               ncol=4, fontsize=LEGEND_SIZE, frameon=False)
 
     fig.tight_layout()
     fig.savefig('figures/polynomial_bifurcation.pdf', bbox_inches='tight')
@@ -292,18 +303,23 @@ def generate_empirical_law_vs_theorem_rates():
         ax.tick_params(labelsize=TICK_SIZE)
         ax.grid(True, linestyle=':', alpha=0.5)
 
-        ax.text(**standard_textbox(rf'$\mu_2 = {mu2:g}$',
-                                   {'x': 0.95, 'y': 0.05, 'ha': 'right', 'va': 'bottom'}),
+        ax.text(**experiment_textbox(rf'$\mu_2 = {mu2:g}$',
+                                     {'x': 0.95, 'y': 0.05, 'ha': 'right', 'va': 'bottom'}),
                transform=ax.transAxes)
 
-        # Zoom inset on last panel: compare linear-compressor rate vs heterogeneous rate.
-        if col_idx == len(mu2_vals) - 1:
+        # Zoom insets compare the linear-compressor rate against the heterogeneous rate.
+        zoom_regions = {
+            1: (0.43, 0.53, 0.74, 0.81),
+            2: (0.43, 0.53, 0.77, 0.82),
+        }
+        if col_idx in zoom_regions:
+            xmin, xmax, ymin, ymax = zoom_regions[col_idx]
             inset_ax = inset_axes(ax, width="30%", height="30%", loc="center right", borderpad=0.6)
             inset_ax.plot(epsilons, conj_rates, color='#E07A5F', linewidth=2.0)
             inset_ax.plot(epsilons, thm2_rates, color='#81B29A', linestyle=(0, (1, 1)), linewidth=2.0)
 
-            inset_ax.set_xlim(0.43, 0.53)
-            inset_ax.set_ylim(0.77, 0.82)
+            inset_ax.set_xlim(xmin, xmax)
+            inset_ax.set_ylim(ymin, ymax)
             inset_ax.set_xticks([])
             inset_ax.set_yticks([])
             inset_ax.tick_params(length=0)
@@ -312,7 +328,7 @@ def generate_empirical_law_vs_theorem_rates():
 
     handles, labels = axes[-1].get_legend_handles_labels()
     fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 1.08),
-               ncol=3, fontsize=16, frameon=False)
+               ncol=3, fontsize=LEGEND_SIZE, frameon=False)
 
     fig.tight_layout()
     fig.savefig('figures/empirical_law_vs_theorem_rates.pdf', bbox_inches='tight')
@@ -394,7 +410,9 @@ def generate_L_heterogeneous_richtarik_log_complexity():
             tick_size=TICK_SIZE,
             return_plt=True,
         )
-        ax.set_title(rf'$L^{{(2)}} = {L2:g}$', fontsize=LABEL_SIZE, pad=10)
+        ax.set_title(rf'$L^{{(2)}} = {L2:g}$', fontsize=TITLE_SIZE, pad=10)
+        ax.set_xticks([0.0, 0.25, 0.5, 0.75, 1.0])
+        ax.tick_params(axis='x', which='major', labelbottom=True, labelsize=TICK_SIZE)
         ax.set_ylim(y_lower, y_upper)
 
         finite_mask = np.isfinite(ratio)
@@ -415,7 +433,6 @@ def generate_L_heterogeneous_richtarik_log_complexity():
             right_ax.set_yticks([min_y])
             right_ax.set_yticklabels([f'{min_y:.2f}'], color='#009E73', fontsize=TICK_SIZE)
             right_ax.tick_params(axis='y', colors='#009E73', length=0, pad=3)
-            right_ax.set_xticks([])
             right_ax.grid(False)
             for spine in right_ax.spines.values():
                 spine.set_visible(False)
